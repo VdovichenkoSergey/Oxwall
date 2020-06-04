@@ -1,3 +1,4 @@
+import os
 import time
 
 from selenium import webdriver
@@ -47,14 +48,12 @@ def test_create_comments(oxwall, driver, loged_user):
 
 def test_delete_message(oxwall, driver, loged_user):
     time.sleep(2)
-    all_posts = driver.find_elements(By.XPATH, '//div[@class="ow_newsfeed_body"]')
-    menu_button = driver.find_elements(By.XPATH, '//div[@class="ow_tooltip  ow_newsfeed_context_tooltip ow_small '
-                                                 'ow_tooltip_top_right"]')
+    menu_button = driver.find_elements(By.XPATH, '//div[@class="ow_newsfeed_context_menu"]')
     action_chain = (
         ActionChains(driver)
-            #  .move_to_element_with_offset(all_posts[-1], all_posts[-1].size['width'] - 15, 25)
             .move_to_element(menu_button[-1])
             .pause(2)
+            .click(menu_button[-1])
             .perform()
     )
     delete_button = driver.find_elements(By.XPATH, '//a[@class="newsfeed_remove_btn owm_red_btn"]')
@@ -62,4 +61,40 @@ def test_delete_message(oxwall, driver, loged_user):
     alert = driver.switch_to.alert
     alert.accept()
     time.sleep(2)
-    assert all_posts[-1].is_displayed() == False
+    assert menu_button[-1].is_displayed() == False
+
+
+def test_signup(oxwall, driver, wait):
+    oxwall.click_signup_button()
+    oxwall.input_username_email_password('Testuser8', 'test8@test.com', 'q123456_')
+    oxwall.press_male_radiobutton()
+    oxwall.select_day_month_year('24', 'Apr', '1981')
+    oxwall.check_male_fun()
+    oxwall.fill_in_textareas(music='rock and some another heavy music', books='fantasy')
+    oxwall.upload_photo()
+    oxwall.submit()
+
+    welcome = wait.until(expected_conditions.visibility_of_element_located(
+        (By.XPATH, '//div[@class="ow_box_cap_body"]/h3[@class="ow_ic_info"]'))
+    )
+
+    assert welcome.is_displayed() == True
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

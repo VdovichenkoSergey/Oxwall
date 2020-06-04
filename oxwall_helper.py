@@ -1,4 +1,4 @@
-import time
+import os
 
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
@@ -8,6 +8,7 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
 
 from custom_wait import presence_of_elements
+from pages.locators import DashboardPageLocators, LoginPageLocators, HeaderLocators
 
 
 class OxwallHelper:
@@ -23,9 +24,9 @@ class OxwallHelper:
     #  log in - start
 
     def sign_in(self, login, password):
-        username = self.driver.find_element(By.NAME, "identity")
-        password1 = self.driver.find_element(By.NAME, "password")
-        sign = self.driver.find_element(By.NAME, "submit")
+        username = self.driver.find_element(*LoginPageLocators.USERNAME_FIELD)
+        password1 = self.driver.find_element(*LoginPageLocators.PASSWORD_FIELD)
+        sign = self.driver.find_element(*LoginPageLocators.SIGN_IN_BUTTON)
         action = (
             ActionChains(self.driver)
                 .move_to_element(username)
@@ -39,9 +40,8 @@ class OxwallHelper:
         )
 
     def wait_signin(self):
-        wait = WebDriverWait(self.driver, 15)
-        sign_in1 = wait.until(expected_conditions.element_to_be_clickable(
-            (By.XPATH, '//span[@class="ow_signin_label"]'))
+        sign_in1 = self.wait.until(expected_conditions.element_to_be_clickable(
+            HeaderLocators.SIGN_IN_BUTTON)
         )
         sign_in1.click()
 
@@ -80,8 +80,7 @@ class OxwallHelper:
     #  post message - start
 
     def post_message(self, message):
-        wait = WebDriverWait(self.driver, 15)
-        textfield = wait.until(expected_conditions.element_to_be_clickable(
+        textfield = self.wait.until(expected_conditions.element_to_be_clickable(
             (By.NAME, 'status'))
         )
         textfield.send_keys(message)
@@ -89,13 +88,15 @@ class OxwallHelper:
         post.click()
 
     def wait_new_post_appear(self, count_posts_before):
-        return self.wait.until(presence_of_elements((By.CSS_SELECTOR, ".ow_newsfeed_content"), count_posts_before + 1),
+        return self.wait.until(presence_of_elements(*DashboardPageLocators.POST_TEXT, count_posts_before + 1),
                                message="less than")
 
     #  post message - end
+    #  comment - start
 
     def post_comment(self, text):
-        comment_buttons = self.driver.find_elements(By.XPATH, '//span[@class="ow_miniic_comment newsfeed_comment_btn "]')
+        comment_buttons = self.driver.find_elements(By.XPATH,
+                                                    '//span[@class="ow_miniic_comment newsfeed_comment_btn "]')
         comment_buttons[0].click()
         comment_text_field = self.driver.find_elements(By.XPATH, '//textarea[@class="comments_fake_autoclick"]')
         comment_text_field[0].send_keys(text)
@@ -104,3 +105,84 @@ class OxwallHelper:
     def wait_new_comment_appear(self, count_comments_before):
         return self.wait.until(presence_of_elements((By.XPATH, '//div[@class="ow_comments_content ow_smallmargin"]'),
                                                     count_comments_before + 1), message="less than")
+
+    #  comment - end
+    #  signup - start
+
+    def click_signup_button(self):
+        signup_button = self.wait.until(expected_conditions.element_to_be_clickable(
+            (By.XPATH, '//a[text()="Sign up"]'))
+        )
+        signup_button.click()
+
+    def input_username_email_password(self, username, email1, password1):
+        user_name = self.wait.until(expected_conditions.visibility_of_any_elements_located(
+            (By.XPATH, '//input[@class="ow_username_validator" and contains (@type, text)]'))
+        )
+        user_name[0].send_keys(username)
+        email = self.driver.find_element(By.NAME, 'email')
+        email.send_keys(email1)
+        password = self.wait.until(expected_conditions.visibility_of_any_elements_located(
+            (By.XPATH, '//input[@name="password" and contains (@type, password)]'))
+        )
+        password[0].send_keys(password1)
+        password_repeat = self.driver.find_element(By.XPATH,
+                                                   '//input[@name="repeatPassword" and contains (@type, password)]')
+        password_repeat.send_keys(password1)
+        real_name = self.wait.until(expected_conditions.visibility_of_any_elements_located(
+            (By.XPATH, '//input[@type="text"]'))
+        )
+        real_name[-1].send_keys(username)
+
+    def press_male_radiobutton(self):
+        male_radio = self.wait.until(expected_conditions.visibility_of_any_elements_located(
+            (By.XPATH, '//input[@type="radio" and contains (@value, "1")]'))
+        )
+        male_radio[0].click()
+
+    def select_day_month_year(self, day, month, year):
+        combo_list = self.wait.until(expected_conditions.visibility_of_any_elements_located(
+            (By.XPATH, '//div[@class="ow_inline owm_inline"]/select[@type="text"]'))
+        )
+        dropdown_day = Select(combo_list[0])
+        dropdown_day.select_by_visible_text(day)
+        dropdown_month = Select(combo_list[1])
+        dropdown_month.select_by_visible_text(month)
+        dropdown_year = Select(combo_list[2])
+        dropdown_year.select_by_visible_text(year)
+
+    def check_male_fun(self):
+        checkbox_male = self.wait.until(expected_conditions.visibility_of_any_elements_located(
+            (By.XPATH, '//ul[@class="ow_checkbox_group clearfix"]/li/label[text()="Male"]'))
+        )
+        checkbox_male[0].click()
+        checkbox_fun = self.wait.until(expected_conditions.visibility_of_any_elements_located(
+            (By.XPATH, '//ul[@class="ow_checkbox_group clearfix"]/li/label[text()="Fun"]'))
+        )
+        checkbox_fun[0].click()
+
+    def fill_in_textareas(self, music, books):
+        textarea_list = self.wait.until(expected_conditions.visibility_of_any_elements_located(
+            (By.XPATH, '//textarea'))
+        )
+        music_area = textarea_list[0]
+        favorite_books_area = textarea_list[1]
+        music_area.send_keys(music)
+        favorite_books_area.send_keys(books)
+
+    def upload_photo(self):
+        user_photo_block = self.driver.find_element(By.XPATH, '//input[@name="userPhoto" and contains (@type, "file")]')
+        user_photo_block.send_keys(os.getcwd() + '\MyPhoto.jpg')
+        apply_crop = self.wait.until(expected_conditions.element_to_be_clickable((By.ID, 'avatar-crop-btn')))
+        apply_crop.click()
+
+    def submit(self):
+        join_button2 = self.wait.until(expected_conditions.element_to_be_clickable((By.NAME, 'joinSubmit')))
+        scroll = (
+            ActionChains(self.driver)
+                .move_to_element(join_button2)
+                .click(join_button2)
+                .perform()
+        )
+
+    #  signup - end

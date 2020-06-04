@@ -1,5 +1,7 @@
 import pytest
 from selenium import webdriver
+from selenium.webdriver.support.wait import WebDriverWait
+
 from oxwall_helper import OxwallHelper
 
 
@@ -14,6 +16,11 @@ def driver():
 @pytest.fixture()
 def oxwall(driver):
     return OxwallHelper(driver)
+
+
+@pytest.fixture()
+def wait(driver):
+    return WebDriverWait(driver, 10)
 
 
 @pytest.fixture()
