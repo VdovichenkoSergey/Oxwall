@@ -2,7 +2,9 @@ import pytest
 from selenium import webdriver
 from selenium.webdriver.support.wait import WebDriverWait
 
+from db.db_connector import OxwallDB
 from oxwall_helper import OxwallHelper
+from pages.internal_pages.main_page import MainPage
 
 
 @pytest.fixture()
@@ -24,14 +26,14 @@ def wait(driver):
 
 
 @pytest.fixture()
-def loged_user(oxwall):
+def logged_user(oxwall):
     login = 'admin'
     oxwall.wait_signin()
     oxwall.sign_in(login=login, password='pass')
     return login
 
 
-with open('messages.txt', 'r', encoding='utf-8') as output:
+with open('messages.txt', 'r') as output:
     mess_list2 = output.readlines()
     message_list = []
     for m in mess_list2:
@@ -44,3 +46,15 @@ with open('messages.txt', 'r', encoding='utf-8') as output:
 def message_list(request):
     message = request.param
     return message
+
+
+@pytest.fixture()
+def main_page(driver):
+    return MainPage(driver)
+
+
+@pytest.fixture()
+def db():
+    db = OxwallDB()
+    yield db
+    db.close()

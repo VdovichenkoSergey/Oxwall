@@ -20,9 +20,12 @@ class InternalPage(Page):
         self.sign_in_menu.click()
 
 
-class MainPage(InternalPage):
-    pass
 
 
-class LoginPage(Page):
-    pass
+
+
+
+
+
+
+
